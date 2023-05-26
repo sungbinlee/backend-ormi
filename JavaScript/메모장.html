@@ -32,6 +32,36 @@
             width: 306px;
             height: 30px;
         }
+
+        /* 모달 스타일 */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+            visibility: hidden;
+            opacity: 0;
+            transition: visibility 0s, opacity 0.3s;
+        }
+
+        .modal-content {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+            max-width: 400px;
+        }
+
+        .modal.show {
+            visibility: visible;
+            opacity: 1;
+        }
     </style>
 </head>
 
@@ -44,10 +74,21 @@
         </section>
         <section id="display"></section>
     </main>
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <h3>메모 수정</h3>
+            <input type="text" id="edit-title" />
+            <textarea id="edit-content" cols="30" rows="10"></textarea>
+            <button onclick="updateNote()">저장</button>
+            <button onclick="hideModal()">취소</button>
+        </div>
+    </div>
     <script>
         let allMemo = JSON.parse(localStorage.getItem("allMemo"));
         allMemo = allMemo ?? [];
         render();
+
+        let editIndex; // 수정할 메모의 인덱스
 
         function saveNote() {
             const title = document.getElementById("title").value;
@@ -63,11 +104,6 @@
             const display = document.getElementById("display");
             display.innerHTML = "";
 
-            // // 최신 게시물이 위로 올라오도록
-            // for (let i = allMemo.length; i > 0 ; i--) {
-            //     // 아래와 유사 코드
-            // }
-
             for (const item of allMemo) {
                 const saveTitle = document.createElement("h2");
                 const saveContent = document.createElement("p");
@@ -81,7 +117,7 @@
 
                 editMemoBtn.textContent = "수정";
                 editMemoBtn.setAttribute("id", item.len);
-
+                editMemoBtn.setAttribute("onclick", "showModal()");
 
                 deleteMemoBtn.textContent = "삭제";
                 deleteMemoBtn.setAttribute("id", item.len);
@@ -95,13 +131,8 @@
             }
         }
 
-
         function remove() {
-            // console.log(event.srcElement.id);
-            // console.log(allMemo);
-            const idx = allMemo.find(
-                (item) => item.len == event.srcElement.id
-            );
+            const idx = allMemo.find((item) => item.len == event.srcElement.id);
             if (idx) {
                 allMemo.splice(
                     allMemo.findIndex((item) => item.len == idx.len),
@@ -112,31 +143,34 @@
             render();
         }
 
+        function showModal() {
+            const modal = document.getElementById("modal");
+            modal.classList.add("show");
 
-        function edit() {
-            const title = document.getElementById("title").value;
-            const content = document.getElementById("content").value;
-            console.log(event.srcElement.id);
-            console.log(allMemo);
-            const idx = allMemo.find(
-                (item) => item.len == event.srcElement.id
-            );
-            if (idx) {
-                allMemo[event.srcElement.id].title = title
-                allMemo[event.srcElement.id].content = content
-                // console.log(allMemo[0]);
-            }
+            const editTitle = document.getElementById("edit-title");
+            const editContent = document.getElementById("edit-content");
+
+            editIndex = event.srcElement.id;
+            editTitle.value = allMemo[editIndex].title;
+            editContent.value = allMemo[editIndex].content;
+        }
+
+        function hideModal() {
+            const modal = document.getElementById("modal");
+            modal.classList.remove("show");
+        }
+
+        function updateNote() {
+            const editTitle = document.getElementById("edit-title").value;
+            const editContent = document.getElementById("edit-content").value;
+
+            allMemo[editIndex].title = editTitle;
+            allMemo[editIndex].content = editContent;
+
             localStorage.setItem("allMemo", JSON.stringify(allMemo));
             render();
-            // if (idx) {
-            //     console.log(idx)
-            //     idx.title = "수정됨"
-            //     idx.content = "수정됨"
-            //     console.log(idx)
 
-            // }
-
-
+            hideModal();
         }
     </script>
 </body>
